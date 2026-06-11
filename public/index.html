@@ -1,0 +1,952 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sarıyer Atatürk MESEM - Randevu Sistemi</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: linear-gradient(135deg, #e8f0fe 0%, #d4e4f7 100%);
+      min-height: 100vh;
+      color: #1a1a2e;
+    }
+    .header {
+      background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+      color: white;
+      padding: 24px 20px;
+      text-align: center;
+      box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+    }
+    .header h1 { font-size: 22px; margin-bottom: 4px; }
+    .header p { font-size: 14px; opacity: 0.85; }
+    .container {
+      max-width: 640px;
+      margin: 24px auto;
+      padding: 0 16px;
+    }
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.08);
+      margin-bottom: 20px;
+    }
+    .card h2 {
+      font-size: 18px;
+      color: #1a237e;
+      margin-bottom: 20px;
+      padding-bottom: 12px;
+      border-bottom: 2px solid #e8eaf6;
+    }
+    .form-group {
+      margin-bottom: 16px;
+    }
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #444;
+      margin-bottom: 6px;
+    }
+    .form-group input,
+    .form-group select,
+    .form-group textarea {
+      width: 100%;
+      padding: 12px 14px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 15px;
+      transition: border-color 0.2s;
+      background: #fafafa;
+      font-family: inherit;
+    }
+    .form-group input:focus,
+    .form-group select:focus,
+    .form-group textarea:focus {
+      outline: none;
+      border-color: #3949ab;
+      background: white;
+    }
+    .form-group textarea { resize: vertical; min-height: 60px; }
+    .form-row {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .btn {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #3949ab 0%, #1a237e 100%);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .btn:hover { transform: translateY(-1px); box-shadow: 0 4px 12px rgba(26,35,126,0.3); }
+    .btn:active { transform: translateY(0); }
+    .btn:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
+    .btn-secondary {
+      background: white;
+      color: #1a237e;
+      border: 2px solid #3949ab;
+      padding: 10px 18px;
+      border-radius: 8px;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s;
+      width: auto;
+    }
+    .btn-secondary:hover { background: #e8eaf6; }
+
+    /* Time slot grid */
+    .slot-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .slot-btn {
+      padding: 10px 6px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      background: white;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.15s;
+      text-align: center;
+    }
+    .slot-btn:hover { border-color: #3949ab; background: #e8eaf6; }
+    .slot-btn.selected { border-color: #3949ab; background: #3949ab; color: white; }
+    .slot-btn.taken { border-color: #e0e0e0; background: #f5f5f5; color: #bbb; cursor: not-allowed; }
+    .slot-btn.loading { opacity: 0.5; cursor: wait; }
+
+    /* Alert */
+    .alert {
+      padding: 14px 16px;
+      border-radius: 10px;
+      margin-bottom: 16px;
+      font-size: 14px;
+      display: none;
+    }
+    .alert.success { display: block; background: #e8f5e9; color: #2e7d32; border: 1px solid #a5d6a7; }
+    .alert.error { display: block; background: #ffebee; color: #c62828; border: 1px solid #ef9a9a; }
+    .alert.info { display: block; background: #e3f2fd; color: #1565c0; border: 1px solid #90caf9; }
+
+    /* Success screen */
+    .success-screen { text-align: center; padding: 30px 0; display: none; }
+    .success-screen .icon { font-size: 64px; margin-bottom: 16px; }
+    .success-screen h2 { color: #2e7d32; border: none; padding: 0; margin-bottom: 8px; }
+    .success-screen .ref { font-size: 28px; font-weight: 700; color: #1a237e; margin: 12px 0; }
+    .success-screen p { color: #666; margin-bottom: 8px; }
+
+    /* Date picker */
+    .date-btn-group {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 8px;
+    }
+    .date-btn {
+      padding: 10px 16px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      background: white;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 500;
+      transition: all 0.15s;
+      text-align: center;
+      flex: 1;
+      min-width: 80px;
+    }
+    .date-btn:hover { border-color: #3949ab; background: #e8eaf6; }
+    .date-btn.selected { border-color: #3949ab; background: #3949ab; color: white; }
+
+    /* Steps */
+    .steps { display: flex; justify-content: center; gap: 8px; margin-bottom: 20px; }
+    .step {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 12px; color: #999;
+    }
+    .step.active { color: #1a237e; font-weight: 600; }
+    .step.completed { color: #2e7d32; }
+    .step .num {
+      width: 24px; height: 24px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 12px; font-weight: 700;
+      background: #e0e0e0; color: white;
+    }
+    .step.active .num { background: #3949ab; }
+    .step.completed .num { background: #2e7d32; }
+
+    /* Checklist */
+    .checklist-section {
+      background: #fafbff;
+      border: 1px solid #e8eaf6;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+    .checklist-section h3 {
+      font-size: 14px;
+      color: #1a237e;
+      margin-bottom: 12px;
+      font-weight: 700;
+    }
+    .check-item {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid #f0f0f5;
+    }
+    .check-item:last-child { border-bottom: none; }
+    .check-item input[type="checkbox"] {
+      width: 20px;
+      height: 20px;
+      min-width: 20px;
+      margin-top: 2px;
+      accent-color: #3949ab;
+      cursor: pointer;
+    }
+    .check-item label {
+      font-size: 13px;
+      color: #333;
+      line-height: 1.5;
+      cursor: pointer;
+      user-select: none;
+    }
+    .check-item label strong {
+      color: #1a237e;
+    }
+    .check-item label .badge {
+      display: inline-block;
+      background: #ffebee;
+      color: #c62828;
+      font-size: 11px;
+      font-weight: 600;
+      padding: 1px 8px;
+      border-radius: 4px;
+      margin-left: 4px;
+    }
+    .checklist-badge {
+      display: inline-block;
+      background: #fff3e0;
+      color: #e65100;
+      font-size: 11px;
+      font-weight: 700;
+      padding: 2px 10px;
+      border-radius: 20px;
+      margin-left: 6px;
+    }
+    .checklist-note {
+      background: #fff8e1;
+      border: 1px solid #ffe082;
+      border-radius: 10px;
+      padding: 12px 14px;
+      margin-bottom: 16px;
+      font-size: 13px;
+      color: #6d4c00;
+      line-height: 1.5;
+    }
+    .checklist-note strong { color: #e65100; }
+
+    /* Mobile */
+    @media (max-width: 480px) {
+      .form-row { grid-template-columns: 1fr; }
+      .slot-grid { grid-template-columns: repeat(2, 1fr); }
+      .date-btn-group { flex-direction: column; }
+      .container { padding: 0 12px; }
+    }
+
+    .loading-spinner {
+      display: inline-block;
+      width: 18px; height: 18px;
+      border: 3px solid rgba(255,255,255,0.3);
+      border-radius: 50%;
+      border-top-color: white;
+      animation: spin 0.6s linear infinite;
+      vertical-align: middle;
+      margin-right: 8px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+  <div class="header">
+    <h1>📅 Sarıyer Atatürk MESEM</h1>
+    <p>Öğrenci Kayıt Randevu Sistemi</p>
+  </div>
+
+  <div class="container">
+    <!-- Step indicator -->
+    <div class="steps">
+      <div class="step active" id="step1-indicator">
+        <span class="num">1</span> Şartlar
+      </div>
+      <div class="step" id="step2-indicator">
+        <span class="num">2</span> Bilgiler
+      </div>
+      <div class="step" id="step3-indicator">
+        <span class="num">3</span> Tarih & Saat
+      </div>
+      <div class="step" id="step4-indicator">
+        <span class="num">4</span> Onay
+      </div>
+    </div>
+
+    <!-- Alert -->
+    <div class="alert" id="alert"></div>
+
+    <!-- Step 0: Checklist -->
+    <div class="card" id="step0">
+      <h2>📋 Kayıt İçin Ön Şartlar</h2>
+
+      <div class="checklist-note">
+        ⚠️ <strong>Önemli:</strong> Aşağıdaki tüm maddeleri dikkatlice okuyun ve onaylayın.
+        Tüm şartları kabul etmeden kayıt işlemine devam edemezsiniz.
+      </div>
+
+      <!-- Yaş şartı -->
+      <div class="checklist-section">
+        <h3>🔞 Yaş Şartı</h3>
+        <div class="check-item">
+          <input type="checkbox" id="chkAge">
+          <label for="chkAge">
+            <strong>Aday çırak ya da çırak öğrenci olmanın ilk şartı 14 yaşını doldurmuş olmaktır.</strong>
+            Öğrencim 14 yaşını doldurmuştur.
+          </label>
+        </div>
+      </div>
+
+      <!-- İş bulma şartı -->
+      <div class="checklist-section">
+        <h3>🏢 İş Bulma Şartı</h3>
+        <div class="check-item">
+          <input type="checkbox" id="chkJob">
+          <label for="chkJob">
+            <strong>Kayıt olmak istediğimiz alan ile ilgili meslek dalında, Sarıyer - Beşiktaş ilçe sınırları içerisinde bir iş bulduk.</strong><br>
+            İş ve işyeri bulma sorumluluğunun veliye ait olduğunu biliyoruz.
+          </label>
+        </div>
+        <div class="check-item">
+          <input type="checkbox" id="chkMaster">
+          <label for="chkMaster">
+            <strong>Staj yapılacak işyerinde, öğrencinin seçtiği dalda firma sahibine ya da çalışanlarından birine ait ustalık ve usta öğreticilik belgesi bulunmaktadır.</strong>
+          </label>
+        </div>
+      </div>
+
+      <!-- Gerekli evraklar -->
+      <div class="checklist-section">
+        <h3>📄 Merkeze Getirilecek Evraklar</h3>
+        <div class="check-item">
+          <input type="checkbox" id="chkDoc1">
+          <label for="chkDoc1">
+            <strong>1.</strong> Nüfus Cüzdanı ve Fotokopisi ve Bir Adet Vesikalık Fotoğraf <span class="badge">Çırak Öğrenci'nin</span>
+          </label>
+        </div>
+        <div class="check-item">
+          <input type="checkbox" id="chkDoc2">
+          <label for="chkDoc2">
+            <strong>2.</strong> İkametgah Belgesi <span class="badge">Velinin E-Devlet'inden alınacak</span>
+          </label>
+        </div>
+        <div class="check-item">
+          <input type="checkbox" id="chkDoc3">
+          <label for="chkDoc3">
+            <strong>3.</strong> Sağlık Raporu (çalışacağı meslek dalının ismi belirtilerek, bu mesleği yapmasında sakınca olmadığını belirtir rapor)<br>
+            <span style="font-size:12px; color:#888;">
+              ❌ Verem Savaş Derneği'nden alınan raporlar geçerli <strong>değildir</strong>.<br>
+              ✅ Aile hekimi, sağlık ocağı, devlet hastanesi, özel hastane ve işyeri hekiminden alınan raporlar geçerlidir.
+            </span>
+          </label>
+        </div>
+        <div class="check-item">
+          <input type="checkbox" id="chkDoc4">
+          <label for="chkDoc4">
+            <strong>4.</strong> Öğrenim Belgesi Aslı ve Fotokopisi (Diploma veya Tasdikname);<br>
+            veya öğrenimle ilişkisi kesilenlerin Açık Lise'ye kaydı var ise oradan Öğrenci Belgesi ve Not Dökümü
+          </label>
+        </div>
+      </div>
+
+      <!-- İmzalanacak belgeler -->
+      <div class="checklist-section">
+        <h3>📝 Okulda İmzalanacak Belgeler</h3>
+        <div class="check-item">
+          <input type="checkbox" id="chkContract1">
+          <label for="chkContract1">
+            <strong>5.</strong> Çıraklık Sözleşmesi
+          </label>
+        </div>
+        <div class="check-item">
+          <input type="checkbox" id="chkContract2">
+          <label for="chkContract2">
+            <strong>6.</strong> Taahhütname
+          </label>
+        </div>
+        <div class="check-item">
+          <input type="checkbox" id="chkContract3">
+          <label for="chkContract3">
+            <strong>7.</strong> Kişisel Veriler İle İlgili Sözleşme
+          </label>
+        </div>
+      </div>
+
+      <!-- İşyerinden alınacak belgeler -->
+      <div class="checklist-section">
+        <h3>🏭 İşyerinden Alınacak Belgeler</h3>
+        <div class="check-item">
+          <input type="checkbox" id="chkBizDoc1">
+          <label for="chkBizDoc1">
+            <strong>8.</strong> İşyerinden alınacak Ustalık Belgesi
+          </label>
+        </div>
+        <div class="check-item">
+          <input type="checkbox" id="chkBizDoc2">
+          <label for="chkBizDoc2">
+            <strong>9.</strong> İşyerinden alınacak Usta Öğreticilik Belgesi
+          </label>
+        </div>
+      </div>
+
+      <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
+        <button type="button" class="btn" onclick="checklistNext()" id="checklistBtn" style="flex:1; min-width:140px;">Devam Et →</button>
+        <button type="button" class="btn-secondary" onclick="openViewModal()" style="padding:14px 18px; font-size:14px;">📋 Randevu Görüntüle</button>
+      </div>
+      <p id="checklistError" style="color:#c62828; font-size:13px; margin-top:8px; display:none;">Lütfen tüm maddeleri okuyup onaylayın.</p>
+    </div>
+
+    <!-- View Appointment Modal (outside step0, inside container) -->
+    <div id="viewModalOverlay" style="display:none; position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(0,0,0,0.5); z-index:1000; align-items:center; justify-content:center;">
+      <div style="background:white; border-radius:16px; padding:24px; max-width:480px; width:90%; max-height:80vh; overflow-y:auto; box-shadow:0 8px 40px rgba(0,0,0,0.2);">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:16px;">
+          <h2 style="font-size:18px; color:#1a237e; border:none; padding:0; margin:0;">📋 Randevularım</h2>
+          <button onclick="closeViewModal()" style="background:none; border:none; font-size:24px; cursor:pointer; color:#999; padding:0; line-height:1;">&times;</button>
+        </div>
+        <div style="margin-bottom:16px;">
+          <label style="display:block; font-size:13px; font-weight:600; color:#444; margin-bottom:6px;">Telefon Numaranız</label>
+          <div style="display:flex; gap:8px;">
+            <input type="tel" id="viewPhone" placeholder="05XX XXX XX XX" style="flex:1; padding:12px 14px; border:2px solid #e0e0e0; border-radius:10px; font-size:15px; background:#fafafa; outline:none;">
+            <button class="btn" onclick="searchAppointments()" id="searchBtn" style="width:auto; padding:12px 20px; white-space:nowrap;">Sorgula</button>
+          </div>
+        </div>
+        <div id="viewResults">
+          <p style="text-align:center; color:#999; padding:20px 0; font-size:14px;">Telefon numaranızı girip sorgulayın</p>
+        </div>
+        <div style="display:flex; gap:8px; margin-top:16px;">
+          <button class="btn-secondary" onclick="closeViewModal()" style="flex:1;">Kapat</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step 1: Student Info -->
+    <div class="card" id="step1" style="display:none">
+      <h2>👤 Öğrenci ve Veli Bilgileri</h2>
+      <div class="form-group">
+        <label>Öğrencinin Adı Soyadı *</label>
+        <input type="text" id="studentName" placeholder="Örn: Ahmet Yılmaz">
+      </div>
+      <div class="form-group">
+        <label>Öğrencinin Doğum Tarihi *</label>
+        <input type="date" id="birthDate" max="2025-12-31">
+      </div>
+      <div class="form-group">
+        <label>Veli Adı Soyadı *</label>
+        <input type="text" id="parentName" placeholder="Örn: Mehmet Yılmaz">
+      </div>
+      <div class="form-group">
+        <label>Veli Telefon *</label>
+        <input type="tel" id="phone" placeholder="05XX XXX XX XX">
+      </div>
+      <div class="form-row">
+        <div class="form-group">
+          <label>Sınıf *</label>
+          <select id="grade">
+            <option value="">Seçiniz</option>
+            <option value="9. Sınıf">9. Sınıf</option>
+            <option value="10. Sınıf">10. Sınıf</option>
+            <option value="11. Sınıf">11. Sınıf</option>
+            <option value="12. Sınıf">12. Sınıf</option>
+          </select>
+        </div>
+        <div class="form-group">
+          <label>Alan / Bölüm *</label>
+          <select id="department">
+            <option value="">Seçiniz</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label>Not (isteğe bağlı)</label>
+        <textarea id="notes" placeholder="Eklemek istediğiniz bir şey varsa..."></textarea>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn-secondary" onclick="goStep0()">← Geri</button>
+        <button class="btn" onclick="goStep2()">Devam Et →</button>
+      </div>
+    </div>
+
+    <!-- Step 2: Date & Time -->
+    <div class="card" id="step2" style="display:none">
+      <h2>📆 Randevu Tarihi ve Saati</h2>
+      <div class="form-group">
+        <label>Uygun Gününüzü Seçin *</label>
+        <div class="date-btn-group" id="dateButtons"></div>
+      </div>
+      <div class="form-group">
+        <label>Uygun Saat Dilimi *</label>
+        <div class="slot-grid" id="slotGrid">
+          <div style="grid-column:1/-1; text-align:center; color:#999; padding:20px;">
+            Önce bir tarih seçin
+          </div>
+        </div>
+      </div>
+      <div style="display:flex; gap:8px; margin-top:16px;">
+        <button class="btn-secondary" onclick="goStep1()">← Geri</button>
+        <button class="btn" onclick="goStep3()" id="step2ContinueBtn" disabled>Devam Et →</button>
+      </div>
+    </div>
+
+    <!-- Step 3: Confirmation -->
+    <div class="card" id="step3" style="display:none">
+      <h2>✅ Randevu Özeti</h2>
+      <div id="summary" style="margin-bottom:20px;">
+        <div style="display:grid; gap:12px;">
+          <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee;">
+            <span style="color:#666;">Öğrenci</span>
+            <span style="font-weight:600;" id="summaryName">-</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee;">
+            <span style="color:#666;">Doğum Tarihi</span>
+            <span style="font-weight:600;" id="summaryBirth">-</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee;">
+            <span style="color:#666;">Veli</span>
+            <span style="font-weight:600;" id="summaryParent">-</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee;">
+            <span style="color:#666;">Telefon</span>
+            <span style="font-weight:600;" id="summaryPhone">-</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee;">
+            <span style="color:#666;">Sınıf / Bölüm</span>
+            <span style="font-weight:600;" id="summaryGrade">-</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee;">
+            <span style="color:#666;">Tarih</span>
+            <span style="font-weight:600;" id="summaryDate">-</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; padding:8px 0; border-bottom:1px solid #eee;">
+            <span style="color:#666;">Saat</span>
+            <span style="font-weight:600;" id="summaryTime">-</span>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn-secondary" onclick="goStep2()">← Geri</button>
+        <button class="btn" onclick="submitAppointment()" id="submitBtn">
+          Randevuyu Oluştur
+        </button>
+      </div>
+    </div>
+
+    <!-- Success Screen -->
+    <div class="card" id="successScreen" style="display:none">
+      <div class="success-screen" style="display:block;">
+        <div class="icon">✅</div>
+        <h2>Randevunuz Oluşturuldu!</h2>
+        <p>Randevu referans numaranız:</p>
+        <div class="ref" id="refNo">-</div>
+        <p style="font-size:13px; color:#888; margin-top:16px;">
+          📌 Randevu saatinde Sarıyer Atatürk MESEM'de hazır bulunun.<br>
+          Yanınızda yukarıda onayladığınız tüm evrakları getirmeyi unutmayın.<br><br>
+          İptal için lütfen okulu arayın.
+        </p>
+        <button class="btn-secondary" style="margin-top:20px;" onclick="location.reload()">
+          Yeni Randevu Oluştur
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Load departments on page load
+    let departments = [];
+    let selectedDate = null;
+    let selectedSlot = null;
+    let availableSlots = [];
+
+    const TIME_SLOTS = [
+      '09:00-09:20', '09:20-09:40', '09:40-10:00',
+      '10:00-10:20', '10:20-10:40', '10:40-11:00',
+      '11:00-11:20', '11:20-11:40', '11:40-12:00',
+      '13:00-13:20', '13:20-13:40', '13:40-14:00',
+      '14:00-14:20', '14:20-14:40', '14:40-15:00',
+      '15:00-15:20', '15:20-15:40', '15:40-16:00'
+    ];
+
+    async function loadDepartments() {
+      try {
+        const res = await fetch('/api/info');
+        const data = await res.json();
+        departments = data.departments;
+        const select = document.getElementById('department');
+        data.departments.forEach(d => {
+          const opt = document.createElement('option');
+          opt.value = d;
+          opt.textContent = d;
+          select.appendChild(opt);
+        });
+      } catch (e) {
+        console.error('Departmanlar yüklenemedi', e);
+      }
+    }
+    loadDepartments();
+
+    // Generate next 7 days
+    function getDateButtons() {
+      const days = ['Pazar', 'Pazartesi', 'Salı', 'Çarşamba', 'Perşembe', 'Cuma', 'Cumartesi'];
+      const today = new Date();
+      const buttons = [];
+      for (let i = 0; i < 7; i++) {
+        const d = new Date(today);
+        d.setDate(d.getDate() + i);
+        const dayName = days[d.getDay()];
+        // Skip weekends
+        if (dayName === 'Cumartesi' || dayName === 'Pazar') continue;
+        const dateStr = d.toISOString().split('T')[0];
+        const display = `${d.getDate()} ${['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'][d.getMonth()]} ${dayName}`;
+        buttons.push({ dateStr, display });
+      }
+      return buttons;
+    }
+
+    function renderDateButtons() {
+      const container = document.getElementById('dateButtons');
+      container.innerHTML = '';
+      getDateButtons().forEach(b => {
+        const btn = document.createElement('button');
+        btn.className = 'date-btn';
+        btn.textContent = b.display;
+        btn.dataset.date = b.dateStr;
+        btn.onclick = () => selectDate(b.dateStr);
+        container.appendChild(btn);
+      });
+    }
+    renderDateButtons();
+
+    async function selectDate(dateStr) {
+      selectedDate = dateStr;
+      selectedSlot = null;
+      document.querySelectorAll('.date-btn').forEach(b => b.classList.toggle('selected', b.dataset.date === dateStr));
+      document.getElementById('step2ContinueBtn').disabled = true;
+
+      const grid = document.getElementById('slotGrid');
+      grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:#999; padding:20px;">⏳ Yükleniyor...</div>';
+
+      try {
+        const res = await fetch(`/api/slots?date=${dateStr}`);
+        const data = await res.json();
+        const taken = new Set(data.taken);
+        availableSlots = data.available;
+
+        grid.innerHTML = '';
+        TIME_SLOTS.forEach(slot => {
+          const btn = document.createElement('button');
+          btn.className = 'slot-btn';
+          btn.textContent = slot;
+          if (taken.has(slot)) {
+            btn.classList.add('taken');
+            btn.disabled = true;
+          } else {
+            btn.onclick = () => selectSlot(slot);
+          }
+          grid.appendChild(btn);
+        });
+      } catch (e) {
+        grid.innerHTML = '<div style="grid-column:1/-1; text-align:center; color:#c62828; padding:20px;">Saatler yüklenemedi</div>';
+      }
+    }
+
+    function selectSlot(slot) {
+      selectedSlot = slot;
+      document.querySelectorAll('.slot-btn').forEach(b => b.classList.toggle('selected', b.textContent === slot));
+      document.getElementById('step2ContinueBtn').disabled = false;
+    }
+
+    // ====== STEP NAVIGATION ======
+
+    function hideAllSteps() {
+      ['step0','step1','step2','step3','successScreen'].forEach(id => {
+        document.getElementById(id).style.display = 'none';
+      });
+    }
+
+    function updateSteps(current) {
+      const steps = [
+        { id: 'step1-indicator', label: 'Şartlar' },
+        { id: 'step2-indicator', label: 'Bilgiler' },
+        { id: 'step3-indicator', label: 'Tarih & Saat' },
+        { id: 'step4-indicator', label: 'Onay' }
+      ];
+      const stepIndex = current === 0 ? 0 : current === 1 ? 1 : current === 2 ? 2 : 3;
+      steps.forEach((s, i) => {
+        const el = document.getElementById(s.id);
+        if (i < stepIndex) el.className = 'step completed';
+        else if (i === stepIndex) el.className = 'step active';
+        else el.className = 'step';
+      });
+    }
+
+    // Checklist → Step 1 (Bilgiler)
+    function checklistNext() {
+      const checks = ['chkAge', 'chkJob', 'chkMaster', 'chkDoc1', 'chkDoc2', 'chkDoc3', 'chkDoc4', 'chkContract1', 'chkContract2', 'chkContract3', 'chkBizDoc1', 'chkBizDoc2'];
+      const allChecked = checks.every(id => document.getElementById(id).checked);
+
+      if (!allChecked) {
+        document.getElementById('checklistError').style.display = 'block';
+        return;
+      }
+
+      document.getElementById('checklistError').style.display = 'none';
+      hideAllSteps();
+      document.getElementById('step1').style.display = 'block';
+      updateSteps(1);
+    }
+
+    // Step 1 → Step 0 (Geri)
+    function goStep0() {
+      hideAllSteps();
+      document.getElementById('step0').style.display = 'block';
+      updateSteps(0);
+      hideAlert();
+    }
+
+    // Step 1 → Step 2
+    function goStep1() {
+      hideAllSteps();
+      document.getElementById('step0').style.display = 'block';
+      updateSteps(0);
+      hideAlert();
+    }
+
+    function goStep2() {
+      // Validate step 1
+      const fields = ['studentName', 'birthDate', 'parentName', 'phone', 'grade', 'department'];
+      for (const f of fields) {
+        const el = document.getElementById(f);
+        if (!el.value.trim()) {
+          showAlert('Lütfen tüm zorunlu alanları doldurun', 'error');
+          el.focus();
+          return;
+        }
+      }
+
+      document.getElementById('step1').style.display = 'none';
+      document.getElementById('step2').style.display = 'block';
+      document.getElementById('step3').style.display = 'none';
+      updateSteps(2);
+      hideAlert();
+    }
+
+    function goStep3() {
+      if (!selectedDate || !selectedSlot) {
+        showAlert('Lütfen tarih ve saat seçin', 'error');
+        return;
+      }
+
+      document.getElementById('summaryName').textContent = document.getElementById('studentName').value;
+      const bd = document.getElementById('birthDate').value;
+      const bdParts = bd.split('-');
+      document.getElementById('summaryBirth').textContent = `${bdParts[2]}/${bdParts[1]}/${bdParts[0]}`;
+      document.getElementById('summaryParent').textContent = document.getElementById('parentName').value;
+      document.getElementById('summaryPhone').textContent = document.getElementById('phone').value;
+      document.getElementById('summaryGrade').textContent = document.getElementById('grade').value + ' / ' + document.getElementById('department').value;
+
+      const months = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+      const d = new Date(selectedDate + 'T12:00:00');
+      document.getElementById('summaryDate').textContent = `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+      document.getElementById('summaryTime').textContent = selectedSlot;
+
+      hideAllSteps();
+      document.getElementById('step3').style.display = 'block';
+      updateSteps(3);
+      hideAlert();
+    }
+
+    // Step 2 → Step 1 (Geri)
+    function goStep1() {
+      document.getElementById('step1').style.display = 'block';
+      document.getElementById('step2').style.display = 'none';
+      document.getElementById('step3').style.display = 'none';
+      updateSteps(1);
+      hideAlert();
+    }
+
+    // Step 3 → Step 2 (Geri)
+    function goStep2Back() {
+      document.getElementById('step2').style.display = 'block';
+      document.getElementById('step3').style.display = 'none';
+      updateSteps(2);
+      hideAlert();
+    }
+
+    async function submitAppointment() {
+      const btn = document.getElementById('submitBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="loading-spinner"></span> Oluşturuluyor...';
+
+      const data = {
+        student_name: document.getElementById('studentName').value.trim(),
+        birth_date: document.getElementById('birthDate').value,
+        parent_name: document.getElementById('parentName').value.trim(),
+        phone: document.getElementById('phone').value.trim(),
+        grade: document.getElementById('grade').value,
+        department: document.getElementById('department').value,
+        date: selectedDate,
+        time_slot: selectedSlot,
+        notes: document.getElementById('notes').value.trim()
+      };
+
+      try {
+        const res = await fetch('/api/appointments', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(data)
+        });
+        const result = await res.json();
+
+        if (res.ok) {
+          hideAllSteps();
+          document.getElementById('successScreen').style.display = 'block';
+          document.getElementById('refNo').textContent = '#' + result.id;
+          updateSteps(4);
+        } else {
+          showAlert(result.error || 'Bir hata oluştu', 'error');
+          btn.disabled = false;
+          btn.textContent = 'Randevuyu Oluştur';
+        }
+      } catch (e) {
+        showAlert('Sunucuya bağlanılamadı. Lütfen tekrar deneyin.', 'error');
+        btn.disabled = false;
+        btn.textContent = 'Randevuyu Oluştur';
+      }
+    }
+
+    function showAlert(msg, type) {
+      const el = document.getElementById('alert');
+      el.className = 'alert ' + type;
+      el.textContent = msg;
+      el.style.display = 'block';
+    }
+
+    function hideAlert() {
+      document.getElementById('alert').style.display = 'none';
+    }
+
+    // ====== VIEW APPOINTMENT MODAL ======
+    function openViewModal() {
+      document.getElementById('viewModalOverlay').style.display = 'flex';
+      document.getElementById('viewPhone').value = '';
+      document.getElementById('viewResults').innerHTML = '<p style="text-align:center; color:#999; padding:20px 0; font-size:14px;">Telefon numaranızı girip sorgulayın</p>';
+      setTimeout(() => document.getElementById('viewPhone').focus(), 100);
+    }
+
+    function closeViewModal() {
+      document.getElementById('viewModalOverlay').style.display = 'none';
+    }
+
+    // Close modal on overlay click
+    document.getElementById('viewModalOverlay').addEventListener('click', function(e) {
+      if (e.target === this) closeViewModal();
+    });
+
+    // Enter key in phone input triggers search
+    document.getElementById('viewPhone').addEventListener('keydown', function(e) {
+      if (e.key === 'Enter') searchAppointments();
+    });
+
+    async function searchAppointments() {
+      const phone = document.getElementById('viewPhone').value.trim();
+      if (!phone) {
+        document.getElementById('viewResults').innerHTML = '<p style="text-align:center; color:#c62828; padding:20px 0; font-size:14px;">Lütfen telefon numarası girin</p>';
+        return;
+      }
+
+      const btn = document.getElementById('searchBtn');
+      btn.disabled = true;
+      btn.innerHTML = '<span class="loading-spinner"></span>';
+
+      try {
+        const res = await fetch(`/api/my-appointments?phone=${encodeURIComponent(phone)}`);
+        const data = await res.json();
+
+        if (!Array.isArray(data) || data.length === 0) {
+          document.getElementById('viewResults').innerHTML = '<p style="text-align:center; color:#e65100; padding:20px 0; font-size:14px;">Bu telefon numarasına ait randevu bulunamadı</p>';
+          return;
+        }
+
+        const statusLabels = { 'pending': '⏳ Bekliyor', 'confirmed': '✅ Onaylandı', 'cancelled': '❌ İptal', 'completed': '✔️ Tamamlandı' };
+        const statusColors = { 'pending': '#e65100', 'confirmed': '#2e7d32', 'cancelled': '#c62828', 'completed': '#1565c0' };
+
+        let html = `<p style="font-size:13px; color:#666; margin-bottom:12px;">${data.length} randevu bulundu</p>`;
+        data.forEach(a => {
+          const months = ['Ocak','Şubat','Mart','Nisan','Mayıs','Haziran','Temmuz','Ağustos','Eylül','Ekim','Kasım','Aralık'];
+          const d = new Date(a.date + 'T12:00:00');
+          const dateStr = `${d.getDate()} ${months[d.getMonth()]} ${d.getFullYear()}`;
+          const statusLabel = statusLabels[a.status] || a.status;
+          const statusColor = statusColors[a.status] || '#999';
+
+          html += `
+            <div style="border:1px solid #e0e0e0; border-radius:10px; padding:12px; margin-bottom:10px;">
+              <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+                <strong style="font-size:14px; color:#1a237e;">#${a.id}</strong>
+                <span style="font-size:11px; font-weight:600; color:${statusColor}; background:${statusColor}15; padding:2px 8px; border-radius:20px;">${statusLabel}</span>
+              </div>
+              <div style="font-size:13px; color:#555; display:grid; gap:4px;">
+                <div>👤 <strong>${a.student_name}</strong> (${a.grade} / ${a.department})</div>
+                <div>📞 ${a.parent_name} - ${a.phone}</div>
+                <div>📅 ${dateStr} &middot; 🕐 ${a.time_slot}</div>
+                ${a.notes ? `<div>📝 ${a.notes}</div>` : ''}
+              </div>
+              ${a.status === 'pending' ? `<button onclick="cancelFromModal('${a.id}')" style="margin-top:8px; background:none; border:1px solid #ef9a9a; color:#c62828; border-radius:6px; padding:4px 12px; font-size:12px; cursor:pointer;">İptal Et</button>` : ''}
+            </div>
+          `;
+        });
+        document.getElementById('viewResults').innerHTML = html;
+      } catch (e) {
+        document.getElementById('viewResults').innerHTML = '<p style="text-align:center; color:#c62828; padding:20px 0; font-size:14px;">Sunucu hatası. Lütfen tekrar deneyin.</p>';
+      } finally {
+        btn.disabled = false;
+        btn.textContent = 'Sorgula';
+      }
+    }
+
+    async function cancelFromModal(id) {
+      if (!confirm('Randevuyu iptal etmek istediğinize emin misiniz?')) return;
+
+      try {
+        const res = await fetch(`/api/appointments/${id}/cancel`, { method: 'POST' });
+        const data = await res.json();
+        if (data.success) {
+          // Refresh the search results
+          searchAppointments();
+        } else {
+          alert(data.error || 'İptal başarısız');
+        }
+      } catch (e) {
+        alert('Sunucu hatası');
+      }
+    }
+  </script>
+</body>
+</html>

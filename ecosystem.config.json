@@ -1,0 +1,11 @@
+{
+  "name": "mesem-app",
+  "script": "server.js",
+  "cwd": "/Users/ugursoldan/mesem-randevu",
+  "env": {
+    "PORT": 3000,
+    "NODE_ENV": "production"
+  },
+  "watch": false,
+  "max_memory_restart": "200M"
+}

@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MESEM Randevu - Admin Paneli</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: #f0f2f5;
+      min-height: 100vh;
+      color: #1a1a2e;
+    }
+    .header {
+      background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+      color: white;
+      padding: 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .header h1 { font-size: 18px; }
+    .header-right { display: flex; align-items: center; gap: 12px; }
+    .header-right button {
+      background: rgba(255,255,255,0.15);
+      color: white;
+      border: 1px solid rgba(255,255,255,0.3);
+      padding: 8px 14px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 13px;
+    }
+    .header-right button:hover { background: rgba(255,255,255,0.25); }
+    .container { max-width: 1100px; margin: 20px auto; padding: 0 16px; }
+
+    /* Stats */
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .stat-card {
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+      text-align: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .stat-card .number { font-size: 28px; font-weight: 700; color: #1a237e; }
+    .stat-card .label { font-size: 12px; color: #888; margin-top: 4px; }
+    .stat-card.today { border-left: 4px solid #3949ab; }
+    .stat-card.pending { border-left: 4px solid #f57f17; }
+    .stat-card.confirmed { border-left: 4px solid #2e7d32; }
+
+    /* Filters */
+    .filters {
+      background: white;
+      border-radius: 12px;
+      padding: 16px;
+      margin-bottom: 16px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+      align-items: center;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    .filters label { font-size: 13px; font-weight: 600; color: #555; }
+    .filters select, .filters input {
+      padding: 8px 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 13px;
+    }
+    .filters select:focus, .filters input:focus { outline: none; border-color: #3949ab; }
+
+    /* Table */
+    .table-wrap {
+      background: white;
+      border-radius: 12px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    }
+    table { width: 100%; border-collapse: collapse; }
+    th {
+      background: #f5f5f5;
+      padding: 12px 14px;
+      text-align: left;
+      font-size: 12px;
+      font-weight: 600;
+      color: #666;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 2px solid #e0e0e0;
+    }
+    td {
+      padding: 12px 14px;
+      font-size: 14px;
+      border-bottom: 1px solid #f0f0f0;
+    }
+    tr:hover { background: #f8f9ff; }
+
+    .status-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    .status-pending { background: #fff3e0; color: #e65100; }
+    .status-confirmed { background: #e8f5e9; color: #2e7d32; }
+    .status-cancelled { background: #ffebee; color: #c62828; }
+    .status-completed { background: #e3f2fd; color: #1565c0; }
+
+    .action-btn {
+      padding: 6px 12px;
+      border-radius: 6px;
+      border: 1px solid #e0e0e0;
+      background: white;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 500;
+      transition: all 0.15s;
+    }
+    .action-btn:hover { background: #f5f5f5; }
+    .action-btn.confirm { border-color: #2e7d32; color: #2e7d32; }
+    .action-btn.confirm:hover { background: #e8f5e9; }
+    .action-btn.cancel { border-color: #c62828; color: #c62828; }
+    .action-btn.cancel:hover { background: #ffebee; }
+    .action-btn.complete { border-color: #1565c0; color: #1565c0; }
+    .action-btn.complete:hover { background: #e3f2fd; }
+
+    .empty { text-align: center; padding: 40px; color: #999; }
+
+    /* Modal */
+    .modal-overlay {
+      position: fixed; top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(0,0,0,0.5);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 100;
+    }
+    .modal-overlay.active { display: flex; }
+    .modal {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      width: 90%;
+      max-width: 500px;
+      max-height: 80vh;
+      overflow-y: auto;
+    }
+    .modal h2 { font-size: 18px; margin-bottom: 16px; color: #1a237e; }
+
+    /* Login */
+    .login-page {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      background: linear-gradient(135deg, #1a237e 0%, #283593 100%);
+    }
+    .login-card {
+      background: white;
+      border-radius: 16px;
+      padding: 32px;
+      width: 360px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.2);
+    }
+    .login-card h2 { text-align: center; margin-bottom: 24px; color: #1a237e; }
+    .login-card input {
+      width: 100%;
+      padding: 12px;
+      border: 2px solid #e0e0e0;
+      border-radius: 10px;
+      font-size: 15px;
+      margin-bottom: 16px;
+    }
+    .login-card input:focus { outline: none; border-color: #3949ab; }
+
+    /* Mobile */
+    @media (max-width: 768px) {
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      table { font-size: 13px; }
+      th, td { padding: 8px 10px; }
+      .filters { flex-direction: column; }
+      .filters select, .filters input { width: 100%; }
+    }
+
+    /* Change password form */
+    .password-form { display: none; margin-top: 16px; }
+    .password-form.active { display: block; }
+    .password-form input {
+      width: 100%;
+      padding: 10px;
+      border: 2px solid #e0e0e0;
+      border-radius: 8px;
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+    .password-form input:focus { outline: none; border-color: #3949ab; }
+    .password-form .btn-save {
+      width: 100%;
+      padding: 10px;
+      background: #3949ab;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .password-form .btn-save:hover { background: #1a237e; }
+
+    /* Detail modal */
+    .detail-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #eee; font-size: 14px; }
+    .detail-row .label { color: #888; }
+    .detail-row .value { font-weight: 500; text-align: right; max-width: 60%; }
+  </style>
+</head>
+<body>
+  <!-- Login Page -->
+  <div class="login-page" id="loginPage">
+    <div class="login-card">
+      <h2>🔐 Admin Paneli</h2>
+      <input type="password" id="loginPass" placeholder="Yönetici şifresi" onkeydown="if(event.key==='Enter') login()">
+      <button class="btn-save" style="width:100%;padding:14px;background:#1a237e;color:white;border:none;border-radius:10px;font-size:16px;font-weight:600;cursor:pointer;" onclick="login()">Giriş Yap</button>
+      <div id="loginError" style="color:#c62828;font-size:13px;margin-top:12px;display:none;"></div>
+    </div>
+  </div>
+
+  <!-- Admin Dashboard -->
+  <div id="adminPanel" style="display:none;">
+    <div class="header">
+      <h1>📅 MESEM Randevu Yönetimi</h1>
+      <div class="header-right">
+        <span id="todayLabel" style="font-size:13px;opacity:0.8;"></span>
+        <button onclick="togglePasswordForm()">🔑 Şifre Değiştir</button>
+        <button onclick="logout()">Çıkış</button>
+      </div>
+    </div>
+
+    <div class="container">
+      <!-- Password change form (hidden) -->
+      <div class="password-form" id="passwordForm">
+        <div style="background:white;border-radius:12px;padding:20px;margin-bottom:20px;box-shadow:0 2px 8px rgba(0,0,0,0.06);">
+          <h3 style="margin-bottom:12px;color:#1a237e;">Şifre Değiştir</h3>
+          <input type="password" id="currentPass" placeholder="Mevcut şifre">
+          <input type="password" id="newPass" placeholder="Yeni şifre">
+          <button class="btn-save" onclick="changePassword()">Kaydet</button>
+          <div id="passAlert" style="font-size:13px;margin-top:8px;"></div>
+        </div>
+      </div>
+
+      <!-- Stats -->
+      <div class="stats" id="statsContainer">
+        <div class="stat-card today"><div class="number" id="statToday">-</div><div class="label">Bugünkü Randevu</div></div>
+        <div class="stat-card pending"><div class="number" id="statPending">-</div><div class="label">Bekleyen</div></div>
+        <div class="stat-card confirmed"><div class="number" id="statConfirmed">-</div><div class="label">Onaylanan</div></div>
+        <div class="stat-card"><div class="number" id="statTotal">-</div><div class="label">Toplam</div></div>
+      </div>
+
+      <!-- Filters -->
+      <div class="filters">
+        <label>Tarih</label>
+        <input type="date" id="filterDate" onchange="loadAppointments()">
+        <label>Durum</label>
+        <select id="filterStatus" onchange="loadAppointments()">
+          <option value="">Tümü</option>
+          <option value="pending">Bekleyen</option>
+          <option value="confirmed">Onaylanan</option>
+          <option value="cancelled">İptal</option>
+          <option value="completed">Tamamlanan</option>
+        </select>
+        <button style="padding:8px 16px;background:#3949ab;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:600;" onclick="location.reload()">🔄 Yenile</button>
+      </div>
+
+      <!-- Table -->
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Öğrenci</th>
+              <th>Doğum T.</th>
+              <th>Veli</th>
+              <th>Telefon</th>
+              <th>Sınıf</th>
+              <th>Bölüm</th>
+              <th>Tarih</th>
+              <th>Saat</th>
+              <th>İşlem</th>
+            </tr>
+          </thead>
+          <tbody id="appointmentsBody">
+            <tr><td colspan="10" class="empty">Yükleniyor...</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let token = localStorage.getItem('mesem_admin_token');
+
+    function showLoginError(msg) {
+      const el = document.getElementById('loginError');
+      el.textContent = msg;
+      el.style.display = 'block';
+    }
+
+    async function login() {
+      const pass = document.getElementById('loginPass').value;
+      if (!pass) return showLoginError('Şifre girin');
+
+      try {
+        const res = await fetch('/api/admin/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ password: pass })
+        });
+        const data = await res.json();
+        if (data.success) {
+          token = data.token;
+          localStorage.setItem('mesem_admin_token', token);
+          document.getElementById('loginPage').style.display = 'none';
+          document.getElementById('adminPanel').style.display = 'block';
+          initAdmin();
+        } else {
+          showLoginError('Hatalı şifre');
+        }
+      } catch (e) {
+        showLoginError('Sunucuya bağlanılamadı');
+      }
+    }
+
+    function logout() {
+      localStorage.removeItem('mesem_admin_token');
+      token = null;
+      document.getElementById('loginPage').style.display = 'flex';
+      document.getElementById('adminPanel').style.display = 'none';
+      document.getElementById('loginPass').value = '';
+    }
+
+    // Auto-login if token exists
+    if (token) {
+      document.getElementById('loginPage').style.display = 'none';
+      document.getElementById('adminPanel').style.display = 'block';
+    }
+
+    async function api(url, options = {}) {
+      const headers = { ...options.headers };
+      if (token) headers['Authorization'] = 'Bearer ' + token;
+      const res = await fetch(url, { ...options, headers });
+      if (res.status === 401) { logout(); return null; }
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Hata');
+      return data;
+    }
+
+    // Set today's date
+    document.addEventListener('DOMContentLoaded', () => {
+      const today = new Date();
+      document.getElementById('todayLabel').textContent =
+        today.toLocaleDateString('tr-TR', { day: 'numeric', month: 'long', year: 'numeric' });
+      if (token) initAdmin();
+    });
+
+    async function initAdmin() {
+      await Promise.all([loadStats(), loadAppointments()]);
+    }
+
+    async function loadStats() {
+      try {
+        const data = await api('/api/admin/stats');
+        if (!data) return;
+        document.getElementById('statToday').textContent = data.today;
+        document.getElementById('statPending').textContent = data.pending;
+        document.getElementById('statConfirmed').textContent = data.confirmed;
+        document.getElementById('statTotal').textContent = data.total;
+      } catch(e) {
+        console.error('Stats error:', e);
+      }
+    }
+
+    async function loadAppointments() {
+      const tbody = document.getElementById('appointmentsBody');
+      tbody.innerHTML = '<tr><td colspan="10" class="empty">Yükleniyor...</td></tr>';
+
+      try {
+        const date = document.getElementById('filterDate').value;
+        const status = document.getElementById('filterStatus').value;
+        let url = '/api/admin/appointments';
+        const params = [];
+        if (date) params.push('date=' + date);
+        if (status) params.push('status=' + status);
+        if (params.length) url += '?' + params.join('&');
+
+        const data = await api(url);
+        if (!data) return;
+
+        if (data.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="11" class="empty">📭 Henüz randevu bulunmuyor</td></tr>';
+          return;
+        }
+
+        tbody.innerHTML = data.map(apt => {
+          const statusClass = 'status-' + apt.status;
+          const statusMap = { pending: 'Bekliyor', confirmed: 'Onaylandı', cancelled: 'İptal', completed: 'Tamamlandı' };
+          const actions = getActionButtons(apt);
+          return `<tr>
+            <td style="font-weight:600;color:#1a237e;">#${apt.id}</td>
+            <td>${escapeHtml(apt.student_name)}</td>
+            <td>
+              ${formatBirthDate(apt.birth_date)}
+              ${isOver19(apt.birth_date) ? '<span style="display:inline-block;background:#ffebee;color:#c62828;font-size:11px;font-weight:600;padding:2px 6px;border-radius:4px;margin-left:4px;" title="19 yaşından gün almış">⚠️ 19+</span>' : ''}
+            </td>
+            <td>${escapeHtml(apt.parent_name)}</td>
+            <td>${escapeHtml(apt.phone)}</td>
+            <td>${escapeHtml(apt.grade)}</td>
+            <td style="font-size:13px;">${escapeHtml(apt.department)}</td>
+            <td>${formatDate(apt.date)}</td>
+            <td>${apt.time_slot}</td>
+            <td style="white-space:nowrap;">
+              <button class="action-btn" onclick="showDetail('${apt.id}')" title="Detay">👁</button>
+              ${actions}
+            </td>
+          </tr>`;
+        }).join('');
+      } catch(e) {
+        tbody.innerHTML = '<tr><td colspan="10" class="empty">Hata: ' + e.message + '</td></tr>';
+      }
+    }
+
+    function getActionButtons(apt) {
+      return '';
+    }
+
+    async function updateStatus(id, status) {
+      try {
+        await api('/api/admin/appointments/' + id, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ status })
+        });
+        await Promise.all([loadStats(), loadAppointments()]);
+      } catch(e) {
+        alert('Hata: ' + e.message);
+      }
+    }
+
+    // Detail modal
+    async function showDetail(id) {
+      try {
+        const apt = await api('/api/appointments/' + id);
+        if (!apt) return;
+        const statusMap = { pending: 'Bekliyor', confirmed: 'Onaylandı', cancelled: 'İptal', completed: 'Tamamlandı' };
+
+        const fields = [
+          { label: 'Referans', value: '#' + apt.id },
+          { label: 'Öğrenci', value: apt.student_name },
+          { label: 'Veli', value: apt.parent_name },
+          { label: 'Telefon', value: apt.phone },
+          { label: 'Sınıf', value: apt.grade },
+          { label: 'Bölüm', value: apt.department },
+          { label: 'Tarih', value: formatDate(apt.date) },
+          { label: 'Saat', value: apt.time_slot },
+          { label: 'Durum', value: statusMap[apt.status] },
+          { label: 'Not', value: apt.notes || '-' },
+          { label: 'Oluşturma', value: apt.created_at }
+        ];
+
+        const modal = document.getElementById('detailModal') || createDetailModal();
+        modal.querySelector('.modal-body').innerHTML = fields.map(f =>
+          `<div class="detail-row"><span class="label">${f.label}</span><span class="value">${escapeHtml(f.value)}</span></div>`
+        ).join('');
+        modal.classList.add('active');
+      } catch(e) {
+        alert('Hata: ' + e.message);
+      }
+    }
+
+    function createDetailModal() {
+      const overlay = document.createElement('div');
+      overlay.className = 'modal-overlay';
+      overlay.id = 'detailModal';
+      overlay.innerHTML = `<div class="modal">
+        <h2>📋 Randevu Detayı</h2>
+        <div class="modal-body"></div>
+        <button class="btn-secondary" style="margin-top:16px;width:100%;padding:10px;background:#f5f5f5;border:1px solid #e0e0e0;border-radius:8px;cursor:pointer;font-weight:600;" onclick="this.closest('.modal-overlay').classList.remove('active')">Kapat</button>
+      </div>`;
+      overlay.addEventListener('click', (e) => { if (e.target === overlay) overlay.classList.remove('active'); });
+      document.body.appendChild(overlay);
+      return overlay;
+    }
+
+    // Password change
+    function togglePasswordForm() {
+      document.getElementById('passwordForm').classList.toggle('active');
+    }
+
+    async function changePassword() {
+      const current = document.getElementById('currentPass').value;
+      const newPass = document.getElementById('newPass').value;
+      const alert = document.getElementById('passAlert');
+
+      if (!current || !newPass) { alert.textContent = 'Tüm alanları doldurun'; alert.style.color = '#c62828'; return; }
+      if (newPass.length < 4) { alert.textContent = 'Yeni şifre en az 4 karakter'; alert.style.color = '#c62828'; return; }
+
+      try {
+        await api('/api/admin/change-password', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ currentPassword: current, newPassword: newPass })
+        });
+        alert.textContent = '✅ Şifre değiştirildi';
+        alert.style.color = '#2e7d32';
+        document.getElementById('currentPass').value = '';
+        document.getElementById('newPass').value = '';
+      } catch(e) {
+        alert.textContent = '❌ ' + e.message;
+        alert.style.color = '#c62828';
+      }
+    }
+
+    // Helpers
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text || '';
+      return div.innerHTML;
+    }
+
+    function formatDate(dateStr) {
+      if (!dateStr) return '-';
+      const d = new Date(dateStr + 'T12:00:00');
+      return d.toLocaleDateString('tr-TR', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+
+    function formatBirthDate(birthDate) {
+      if (!birthDate) return '-';
+      const parts = birthDate.split('-');
+      if (parts.length !== 3) return birthDate;
+      return parts[2] + '/' + parts[1] + '/' + parts[0];
+    }
+
+    function isOver19(birthDate) {
+      if (!birthDate) return false;
+      const bd = new Date(birthDate + 'T12:00:00');
+      const now = new Date();
+      let age = now.getFullYear() - bd.getFullYear();
+      const m = now.getMonth() - bd.getMonth();
+      if (m < 0 || (m === 0 && now.getDate() < bd.getDate())) age--;
+      return age >= 19;
+    }
+  </script>
+</body>
+</html>
