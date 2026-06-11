@@ -242,7 +242,7 @@ app.get('/api/info', (req, res) => {
   });
 });
 
-app.listen(PORT, () => {
+app.listen(PORT, '0.0.0.0', () => {
   console.log(`📅 MESEM Randevu Sistemi çalışıyor: http://localhost:${PORT}`);
   console.log(`👨‍🎓 Öğrenci sayfası: http://localhost:${PORT}`);
   console.log(`🔐 Admin paneli: http://localhost:${PORT}/admin`);
