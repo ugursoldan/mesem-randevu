@@ -265,14 +265,7 @@
       <div class="filters">
         <label>Tarih</label>
         <input type="date" id="filterDate" onchange="loadAppointments()">
-        <label>Durum</label>
-        <select id="filterStatus" onchange="loadAppointments()">
-          <option value="">Tümü</option>
-          <option value="pending">Bekleyen</option>
-          <option value="confirmed">Onaylanan</option>
-          <option value="cancelled">İptal</option>
-          <option value="completed">Tamamlanan</option>
-        </select>
+
         <button style="padding:8px 16px;background:#3949ab;color:white;border:none;border-radius:8px;cursor:pointer;font-weight:600;" onclick="location.reload()">🔄 Yenile</button>
       </div>
 
@@ -390,11 +383,9 @@
 
       try {
         const date = document.getElementById('filterDate').value;
-        const status = document.getElementById('filterStatus').value;
         let url = '/api/admin/appointments';
         const params = [];
         if (date) params.push('date=' + date);
-        if (status) params.push('status=' + status);
         if (params.length) url += '?' + params.join('&');
 
         const data = await api(url);
