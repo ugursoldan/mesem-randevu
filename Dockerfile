@@ -15,8 +15,5 @@ COPY . .
 # Create data directory for SQLite
 RUN mkdir -p /app/data
 
-# Expose port
-EXPOSE 8080
-
 # Start server
 CMD ["node", "server.js"]
