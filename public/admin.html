@@ -446,8 +446,6 @@
       try {
         const apt = await api('/api/appointments/' + id);
         if (!apt) return;
-        const statusMap = { pending: 'Bekliyor', confirmed: 'Onaylandı', cancelled: 'İptal', completed: 'Tamamlandı' };
-
         const fields = [
           { label: 'Referans', value: '#' + apt.id },
           { label: 'Öğrenci', value: apt.student_name },
@@ -457,7 +455,6 @@
           { label: 'Bölüm', value: apt.department },
           { label: 'Tarih', value: formatDate(apt.date) },
           { label: 'Saat', value: apt.time_slot },
-          { label: 'Durum', value: statusMap[apt.status] },
           { label: 'Not', value: apt.notes || '-' },
           { label: 'Oluşturma', value: apt.created_at }
         ];
