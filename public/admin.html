@@ -330,8 +330,6 @@
       <!-- Stats -->
       <div class="stats" id="statsContainer">
         <div class="stat-card today"><div class="number" id="statToday">-</div><div class="label">Bugünkü Randevu</div></div>
-        <div class="stat-card pending"><div class="number" id="statPending">-</div><div class="label">Bekleyen</div></div>
-        <div class="stat-card confirmed"><div class="number" id="statConfirmed">-</div><div class="label">Onaylanan</div></div>
         <div class="stat-card"><div class="number" id="statTotal">-</div><div class="label">Toplam</div></div>
       </div>
 
@@ -443,8 +441,6 @@
         const data = await api('/api/admin/stats');
         if (!data) return;
         document.getElementById('statToday').textContent = data.today;
-        document.getElementById('statPending').textContent = data.pending;
-        document.getElementById('statConfirmed').textContent = data.confirmed;
         document.getElementById('statTotal').textContent = data.total;
       } catch(e) {
         console.error('Stats error:', e);
