@@ -3,6 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="MESEM Randevu">
+  <link rel="manifest" href="/manifest.json">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
   <title>MESEM Randevu - Admin Paneli</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -187,6 +192,74 @@
       th, td { padding: 8px 10px; }
       .filters { flex-direction: column; }
       .filters select, .filters input { width: 100%; }
+    }
+
+    /* Mobile PWA: card view for table on small screens */
+    @media (max-width: 640px) {
+      .container { padding: 0 8px; margin: 12px auto; }
+      .header { padding: 14px 12px; }
+      .header h1 { font-size: 15px; }
+      .header-right { gap: 8px; }
+      .header-right button { padding: 6px 10px; font-size: 12px; }
+
+      .stats { gap: 8px; }
+      .stat-card { padding: 12px; }
+      .stat-card .number { font-size: 22px; }
+
+      .filters { padding: 12px; gap: 8px; }
+
+      /* Table → Card layout */
+      table, thead, tbody, th, td, tr {
+        display: block;
+      }
+      thead { display: none; }
+      .table-wrap { background: transparent; box-shadow: none; }
+      table { background: transparent; }
+      tbody tr {
+        background: white;
+        border-radius: 12px;
+        padding: 12px;
+        margin-bottom: 10px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        position: relative;
+      }
+      td {
+        padding: 4px 0;
+        border: none;
+        font-size: 13px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+      }
+      td:before {
+        content: attr(data-label);
+        font-weight: 600;
+        color: #888;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 0.3px;
+      }
+      td:first-child {
+        font-size: 11px;
+        color: #1a237e;
+        font-weight: 700;
+        padding-bottom: 8px;
+        border-bottom: 1px solid #eee;
+        margin-bottom: 4px;
+      }
+      td:last-child {
+        margin-top: 8px;
+        padding-top: 8px;
+        border-top: 1px solid #eee;
+      }
+      td .action-btn { font-size: 13px; padding: 8px 14px; }
+      .empty { padding: 20px; }
+
+      /* Cards for stat cards */
+      .stat-card { border-radius: 10px; }
+
+      /* Detail modal */
+      .modal { width: 92%; padding: 18px; }
     }
 
     /* Change password form */
@@ -401,19 +474,19 @@
           const statusMap = { pending: 'Bekliyor', confirmed: 'Onaylandı', cancelled: 'İptal', completed: 'Tamamlandı' };
           const actions = getActionButtons(apt);
           return `<tr>
-            <td style="font-weight:600;color:#1a237e;">#${apt.id}</td>
-            <td>${escapeHtml(apt.student_name)}</td>
-            <td>
+            <td style="font-weight:600;color:#1a237e;" data-label="Referans">#${apt.id}</td>
+            <td data-label="Öğrenci">${escapeHtml(apt.student_name)}</td>
+            <td data-label="Doğum">
               ${formatBirthDate(apt.birth_date)}
               ${isOver19(apt.birth_date) ? '<span style="display:inline-block;background:#ffebee;color:#c62828;font-size:11px;font-weight:600;padding:2px 6px;border-radius:4px;margin-left:4px;" title="19 yaşından gün almış">⚠️ 19+</span>' : ''}
             </td>
-            <td>${escapeHtml(apt.parent_name)}</td>
-            <td>${escapeHtml(apt.phone)}</td>
-            <td>${escapeHtml(apt.grade)}</td>
-            <td style="font-size:13px;">${escapeHtml(apt.department)}</td>
-            <td>${formatDate(apt.date)}</td>
-            <td>${apt.time_slot}</td>
-            <td style="white-space:nowrap;">
+            <td data-label="Veli">${escapeHtml(apt.parent_name)}</td>
+            <td data-label="Telefon">${escapeHtml(apt.phone)}</td>
+            <td data-label="Sınıf">${escapeHtml(apt.grade)}</td>
+            <td style="font-size:13px;" data-label="Bölüm">${escapeHtml(apt.department)}</td>
+            <td data-label="Tarih">${formatDate(apt.date)}</td>
+            <td data-label="Saat">${apt.time_slot}</td>
+            <td style="white-space:nowrap;" data-label="İşlem">
               <button class="action-btn" onclick="showDetail('${apt.id}')" title="Detay">👁</button>
               ${actions}
             </td>
@@ -540,6 +613,17 @@
       const m = now.getMonth() - bd.getMonth();
       if (m < 0 || (m === 0 && now.getDate() < bd.getDate())) age--;
       return age >= 19;
+    }
+  </script>
+
+  <!-- PWA: Register service worker -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js').then(reg => {
+        console.log('SW registered:', reg.scope);
+      }).catch(err => {
+        console.warn('SW registration failed:', err);
+      });
     }
   </script>
 </body>
