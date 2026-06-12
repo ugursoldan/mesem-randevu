@@ -6,8 +6,9 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="MESEM Randevu">
-  <link rel="manifest" href="/manifest.json">
+  <link rel="manifest" href="/manifest-admin.json">
   <link rel="apple-touch-icon" href="/icons/icon-192.png">
+  <meta name="apple-mobile-web-app-title" content="MESEM Admin">
   <title>MESEM Randevu - Admin Paneli</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -619,10 +620,10 @@
   <!-- PWA: Register service worker -->
   <script>
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js').then(reg => {
-        console.log('SW registered:', reg.scope);
+      navigator.serviceWorker.register('/admin/sw.js', { scope: '/admin' }).then(reg => {
+        console.log('Admin SW registered:', reg.scope);
       }).catch(err => {
-        console.warn('SW registration failed:', err);
+        console.warn('Admin SW registration failed:', err);
       });
     }
   </script>
