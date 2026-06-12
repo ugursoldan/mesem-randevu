@@ -225,6 +225,30 @@ app.post('/api/admin/change-password', adminAuth, (req, res) => {
   res.json({ success: true, message: 'Şifre değiştirildi' });
 });
 
+// --- PWA Routes ---
+app.get('/manifest-admin.json', (req, res) => {
+  res.json({
+    name: 'MESEM Admin Paneli',
+    short_name: 'MESEM Admin',
+    description: 'Sarıyer Atatürk MESEM yönetim paneli',
+    start_url: '/admin',
+    scope: '/admin',
+    display: 'standalone',
+    orientation: 'portrait',
+    theme_color: '#1a237e',
+    background_color: '#f0f2f5',
+    categories: ['education', 'productivity'],
+    icons: [
+      { src: '/icons/icon-192.png', sizes: '192x192', type: 'image/png', purpose: 'any maskable' },
+      { src: '/icons/icon-512.png', sizes: '512x512', type: 'image/png', purpose: 'any maskable' }
+    ]
+  });
+});
+
+app.get('/admin/sw.js', (req, res) => {
+  res.type('application/javascript').send(`const CACHE='mesem-admin-v1';const ASSETS=['/admin','/admin/','/manifest-admin.json','/icons/icon-192.png','/icons/icon-512.png'];self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE).then(c=>c.addAll(ASSETS)));self.skipWaiting()});self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(k=>k!==CACHE).map(k=>caches.delete(k)))));self.clients.claim()});self.addEventListener('fetch',e=>{const u=new URL(e.request.url);if(u.origin!==location.origin)return;if(u.pathname.startsWith('/api/')){e.respondWith(fetch(e.request).catch(()=>new Response(JSON.stringify({error:'Bağlantı hatası'}),{status:503,headers:{'Content-Type':'application/json'}})));return}e.respondWith(fetch(e.request).then(r=>{const c=r.clone();caches.open(CACHE).then(ca=>ca.put(e.request,c));return r}).catch(()=>caches.match(e.request).then(r=>r||new Response('Offline',{status:503}))))});`);
+});
+
 // --- Serve Frontend ---
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
