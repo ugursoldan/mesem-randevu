@@ -13,8 +13,10 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, 'public')));
 
 // --- Database Setup ---
-const dbPath = path.join(__dirname, 'data', 'mesem.db');
-fs.mkdirSync(path.join(__dirname, 'data'), { recursive: true });
+const dbPath = process.env.MESEM
+  ? path.join(process.env.MESEM, 'mesem.db')
+  : path.join(__dirname, 'data', 'mesem.db');
+fs.mkdirSync(path.dirname(dbPath), { recursive: true });
 const db = new Database(dbPath);
 db.pragma('journal_mode = WAL');
 db.pragma('foreign_keys = ON');
