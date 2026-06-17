@@ -485,6 +485,7 @@
             <td data-label="Saat">${apt.time_slot}</td>
             <td style="white-space:nowrap;" data-label="İşlem">
               <button class="action-btn" onclick="showDetail('${apt.id}')" title="Detay">👁</button>
+              <button class="action-btn" style="border-color:#c62828;color:#c62828;" onclick="deleteAppointment('${apt.id}')" title="Sil">🗑</button>
               ${actions}
             </td>
           </tr>`;
@@ -505,6 +506,16 @@
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ status })
         });
+        await Promise.all([loadStats(), loadAppointments()]);
+      } catch(e) {
+        alert('Hata: ' + e.message);
+      }
+    }
+
+    async function deleteAppointment(id) {
+      if (!confirm('Bu randevuyu silmek istediğinize emin misiniz?')) return;
+      try {
+        await api('/api/admin/appointments/' + id, { method: 'DELETE' });
         await Promise.all([loadStats(), loadAppointments()]);
       } catch(e) {
         alert('Hata: ' + e.message);

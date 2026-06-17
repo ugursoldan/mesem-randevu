@@ -227,6 +227,16 @@ app.post('/api/admin/change-password', adminAuth, (req, res) => {
   res.json({ success: true, message: 'Şifre değiştirildi' });
 });
 
+// Delete appointment (admin only)
+app.delete('/api/admin/appointments/:id', adminAuth, (req, res) => {
+  const { id } = req.params;
+  const existing = db.prepare('SELECT id FROM appointments WHERE id = ?').get(id);
+  if (!existing) return res.status(404).json({ error: 'Randevu bulunamadı' });
+
+  db.prepare('DELETE FROM appointments WHERE id = ?').run(id);
+  res.json({ success: true, message: 'Randevu silindi' });
+});
+
 // --- PWA Routes ---
 app.get('/manifest-admin.json', (req, res) => {
   res.json({
