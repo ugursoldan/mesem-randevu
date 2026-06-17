@@ -905,7 +905,7 @@
           return;
         }
 
-        const statusLabels = { 'pending': '⏳ Bekliyor', 'confirmed': '✅ Onaylandı', 'cancelled': '❌ İptal', 'completed': '✔️ Tamamlandı' };
+        const statusLabels = { 'pending': '', 'confirmed': '✅ Onaylandı', 'cancelled': '❌ İptal', 'completed': '✔️ Tamamlandı' };
         const statusColors = { 'pending': '#e65100', 'confirmed': '#2e7d32', 'cancelled': '#c62828', 'completed': '#1565c0' };
 
         let html = `<p style="font-size:13px; color:#666; margin-bottom:12px;">${data.length} randevu bulundu</p>`;
