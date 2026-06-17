@@ -421,6 +421,12 @@
             <strong>9.</strong> İşyerinden alınacak Usta Öğreticilik Belgesi
           </label>
         </div>
+        <div class="check-item">
+          <input type="checkbox" id="chkBizDoc3">
+          <label for="chkBizDoc3">
+            <strong>10.</strong> Usta Öğreticilik Belgesinde ismi yazan kişinin o işyeriyle bağını gösteren belge (SGK Hizmet Dökümü, Vergi Levhası vb.)
+          </label>
+        </div>
       </div>
 
       <div style="margin-top:8px; display:flex; gap:8px; flex-wrap:wrap;">
@@ -714,7 +720,7 @@
 
     // Checklist → Step 1 (Bilgiler)
     function checklistNext() {
-      const checks = ['chkAge', 'chkJob', 'chkMaster', 'chkDoc1', 'chkDoc2', 'chkDoc3', 'chkDoc4', 'chkContract1', 'chkContract2', 'chkContract3', 'chkBizDoc1', 'chkBizDoc2'];
+      const checks = ['chkAge', 'chkJob', 'chkMaster', 'chkDoc1', 'chkDoc2', 'chkDoc3', 'chkDoc4', 'chkContract1', 'chkContract2', 'chkContract3', 'chkBizDoc1', 'chkBizDoc2', 'chkBizDoc3'];
       const allChecked = checks.every(id => document.getElementById(id).checked);
 
       if (!allChecked) {
