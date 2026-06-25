@@ -236,17 +236,10 @@
 
         board.innerHTML = filtered.map(a => `
           <div class="card ${a.status}">
-            <div style="display:flex;justify-content:space-between;align-items:start;">
+            <div style="display:flex;justify-content:space-between;align-items:center;">
               <div class="time-badge">${a.time_slot}</div>
-              <span class="status-badge ${a.status}">${statusLabel(a.status)}</span>
+              <div class="student">${a.student_name}</div>
             </div>
-            <div class="student">${a.student_name}</div>
-            <div class="meta">
-              <span class="tag">📚 ${a.grade}</span>
-              <span class="tag">🏫 ${a.department}</span>
-            </div>
-            <div class="parent">👨‍👩‍👧 ${a.parent_name} — 📞 ${a.phone}</div>
-            ${a.notes ? `<div style="font-size:15px;color:#667788;margin-top:6px;">📝 ${a.notes}</div>` : ''}
           </div>
         `).join('');
       } catch (err) {
