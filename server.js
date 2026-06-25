@@ -6,7 +6,7 @@ const path = require('path');
 const fs = require('fs');
 
 const app = express();
-const PORT = process.env.PORT;
+const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 app.use(express.json());
@@ -268,6 +268,22 @@ app.get('/', (req, res) => {
 
 app.get('/admin', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'admin.html'));
+});
+
+// Public board — today's appointments (no auth needed)
+app.get('/api/board', (req, res) => {
+  const { date } = req.query;
+  if (!date) return res.status(400).json({ error: 'Tarih gerekli' });
+
+  const appointments = db.prepare(
+    "SELECT * FROM appointments WHERE date = ? ORDER BY time_slot ASC"
+  ).all(date);
+  res.json(appointments);
+});
+
+// Board page
+app.get('/board', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'board.html'));
 });
 
 app.get('/api/info', (req, res) => {
