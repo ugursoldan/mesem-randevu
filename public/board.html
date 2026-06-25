@@ -166,8 +166,7 @@
   </div>
 
   <div class="stats" id="stats">
-    <div class="stat-item pending"><span class="num" id="pendingCount">0</span> <span class="label">Bekleyen</span></div>
-    <div class="stat-item confirmed"><span class="num" id="confirmedCount">0</span> <span class="label">Onaylanan</span></div>
+
   </div>
 
   <div class="board" id="board"></div>
@@ -192,6 +191,7 @@
 
     function statusLabel(status) {
       const map = { pending: 'Bekliyor', confirmed: 'Onaylandı' };
+
       return map[status] || status;
     }
 
