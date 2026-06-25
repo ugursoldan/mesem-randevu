@@ -215,12 +215,6 @@
           return true;
         });
 
-        // Stats
-        const counts = { pending: 0, confirmed: 0 };
-        filtered.forEach(a => { counts[a.status] = (counts[a.status] || 0) + 1; });
-        document.getElementById('pendingCount').textContent = counts.pending;
-        document.getElementById('confirmedCount').textContent = counts.confirmed;
-
         if (filtered.length === 0) {
           board.innerHTML = `
             <div class="empty">
