@@ -227,14 +227,6 @@ app.post('/api/admin/change-password', adminAuth, (req, res) => {
   res.json({ success: true, message: 'Şifre değiştirildi' });
 });
 
-// Batch update appointment dates (admin only) — TEMPORARY
-app.put('/api/admin/batch-update-date', adminAuth, (req, res) => {
-  const { oldDate, newDate } = req.body;
-  if (!oldDate || !newDate) return res.status(400).json({ error: 'oldDate ve newDate gerekli' });
-  const result = db.prepare("UPDATE appointments SET date = ? WHERE date = ?").run(newDate, oldDate);
-  res.json({ success: true, updated: result.changes, message: `${result.changes} randevu güncellendi` });
-});
-
 // Delete appointment (admin only)
 app.delete('/api/admin/appointments/:id', adminAuth, (req, res) => {
   const { id } = req.params;
