@@ -355,11 +355,12 @@
               <th>Bölüm</th>
               <th>Tarih</th>
               <th>Saat</th>
+              <th>Durum</th>
               <th>İşlem</th>
             </tr>
           </thead>
           <tbody id="appointmentsBody">
-            <tr><td colspan="10" class="empty">Yükleniyor...</td></tr>
+            <tr><td colspan="11" class="empty">Yükleniyor...</td></tr>
           </tbody>
         </table>
       </div>
@@ -449,7 +450,7 @@
 
     async function loadAppointments() {
       const tbody = document.getElementById('appointmentsBody');
-      tbody.innerHTML = '<tr><td colspan="10" class="empty">Yükleniyor...</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="11" class="empty">Yükleniyor...</td></tr>';
 
       try {
         const date = document.getElementById('filterDate').value;
@@ -468,7 +469,6 @@
 
         tbody.innerHTML = data.map(apt => {
           const statusClass = 'status-' + apt.status;
-          const statusMap = { pending: 'Bekliyor', confirmed: 'Onaylandı', cancelled: 'İptal', completed: 'Tamamlandı' };
           const actions = getActionButtons(apt);
           return `<tr>
             <td style="font-weight:600;color:#1a237e;" data-label="Referans">#${apt.id}</td>
@@ -483,6 +483,7 @@
             <td style="font-size:13px;" data-label="Bölüm">${escapeHtml(apt.department)}</td>
             <td data-label="Tarih">${formatDate(apt.date)}</td>
             <td data-label="Saat">${apt.time_slot}</td>
+            <td data-label="Durum"><span class="status-badge ${statusClass}">${statusMap[apt.status] || apt.status}</span></td>
             <td style="white-space:nowrap;" data-label="İşlem">
               <button class="action-btn" onclick="showDetail('${apt.id}')" title="Detay">👁</button>
               <button class="action-btn" style="border-color:#c62828;color:#c62828;" onclick="deleteAppointment('${apt.id}')" title="Sil">🗑</button>
@@ -491,11 +492,25 @@
           </tr>`;
         }).join('');
       } catch(e) {
-        tbody.innerHTML = '<tr><td colspan="10" class="empty">Hata: ' + e.message + '</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="11" class="empty">Hata: ' + e.message + '</td></tr>';
       }
     }
 
     function getActionButtons(apt) {
+      if (apt.status === 'pending') {
+        return `<button class="action-btn confirm" onclick="updateStatus('${apt.id}','confirmed')" title="Onayla">✓ Onayla</button>
+                <button class="action-btn cancel" onclick="updateStatus('${apt.id}','cancelled')" title="İptal">✕ İptal</button>`;
+      }
+      if (apt.status === 'confirmed') {
+        return `<button class="action-btn complete" onclick="updateStatus('${apt.id}','completed')" title="Tamamlandı">✓ Tamamla</button>
+                <button class="action-btn cancel" onclick="updateStatus('${apt.id}','cancelled')" title="İptal">✕ İptal</button>`;
+      }
+      if (apt.status === 'completed') {
+        return `<span style="color:#1565c0;font-size:12px;font-weight:600;">✅ Tamamlandı</span>`;
+      }
+      if (apt.status === 'cancelled') {
+        return `<span style="color:#c62828;font-size:12px;font-weight:600;">❌ İptal Edildi</span>`;
+      }
       return '';
     }
 
@@ -536,6 +551,7 @@
           { label: 'Bölüm', value: apt.department },
           { label: 'Tarih', value: formatDate(apt.date) },
           { label: 'Saat', value: apt.time_slot },
+          { label: 'Durum', value: statusMap[apt.status] || apt.status },
           { label: 'Not', value: apt.notes || '-' },
           { label: 'Oluşturma', value: apt.created_at }
         ];
@@ -592,6 +608,8 @@
         alert.style.color = '#c62828';
       }
     }
+
+    const statusMap = { pending: 'Bekliyor', confirmed: 'Onaylandı', cancelled: 'İptal', completed: 'Tamamlandı' };
 
     // Helpers
     function escapeHtml(text) {
